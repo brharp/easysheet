@@ -8,6 +8,7 @@
 #include "ICalFileDataSource.h"
 #include "GDIDisplay.h"
 
+using std::unique_ptr;
 
 #define MAX_LOADSTRING 100
 
@@ -15,8 +16,11 @@
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
-DataSource * pDataSource;
-SheetView *  pSheetView;
+unique_ptr<DataSource> pDataSource;
+unique_ptr<SheetView> pSheetView;
+time_t start;
+time_t end;
+
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -32,13 +36,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	time_t start;
-	time_t end;
-
-	start = ICalFileDataSource::parseDate("20130201", true);
-	end   = ICalFileDataSource::parseDate("20130208", true);
- 	pDataSource = new ICalFileDataSource("Calendar.ics", start, end);
-	pSheetView  = new SheetView(*pDataSource);
+	start = ICalFileDataSource::parseDate("20130318", true);
+	end   = ICalFileDataSource::parseDate("20130323", true);
+ 	pDataSource = std::unique_ptr<DataSource>(new ICalFileDataSource("Calendar.ics", start, end));
+	pSheetView  = std::unique_ptr<SheetView>(new SheetView(*pDataSource));
 
 	MSG msg;
 	HACCEL hAccelTable;
@@ -160,6 +161,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Parse the menu selections:
 		switch (wmId)
 		{
+		case IDM_OPEN:
+			// http://msdn.microsoft.com/en-us/library/windows/desktop/ms646829(v=vs.85).aspx#open_file
+			OPENFILENAME ofn;       // common dialog box structure
+			wchar_t szFile[260];       // buffer for file name
+			// Initialize OPENFILENAME
+			ZeroMemory(&ofn, sizeof(ofn));
+			ofn.lStructSize = sizeof(ofn);
+			ofn.hwndOwner = hWnd;
+			ofn.lpstrFile = szFile;
+			// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
+			// use the contents of szFile to initialize itself.
+			ofn.lpstrFile[0] = L'\0';
+			ofn.nMaxFile = sizeof(szFile);
+			ofn.lpstrFilter = L"iCalendar\0*.ics\0All\0*.*\0";
+			ofn.nFilterIndex = 1;
+			ofn.lpstrFileTitle = NULL;
+			ofn.nMaxFileTitle = 0;
+			ofn.lpstrInitialDir = NULL;
+			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+			// Display the Open dialog box. 
+			if (GetOpenFileName(&ofn)==TRUE)  {
+				char fname[256];
+				size_t fnamelen = wcslen(ofn.lpstrFile);
+				wcstombs(fname, ofn.lpstrFile, fnamelen);
+				fname[fnamelen] = '\0';
+				pDataSource = unique_ptr<DataSource>(new ICalFileDataSource(fname, start, end));
+				pSheetView = unique_ptr<SheetView>(new SheetView(*pDataSource));
+				InvalidateRgn(hWnd, NULL, TRUE);
+			}
+			break;
 		case IDM_ABOUT:
 			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;

@@ -70,7 +70,12 @@ const char *ICalFileDataSource::getRowLabel(int rowIndex)
 const char *ICalFileDataSource::getColumnLabel(int columnIndex)
 {
 	static char label[256];
-	sprintf(label, "%d", columnIndex);
+	time_t time;
+	struct tm tm;
+
+	time = start + columnIndex * 60 * 60 * 24;
+	localtime_s(&tm, &time);
+	sprintf(label, "%d", tm.tm_mday);
 	return label;
 }
 

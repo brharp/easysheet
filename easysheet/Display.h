@@ -12,5 +12,6 @@ public:
 	virtual void endCell() = 0;
 	virtual void cellData(time_t data) = 0;
 	virtual void rowHeader(const char *label) = 0;
+	virtual void columnHeader(const char *label) = 0;
 };
 

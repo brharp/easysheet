@@ -13,6 +13,7 @@
 #define IDI_EASYSHEET			107
 #define IDI_SMALL				108
 #define IDC_EASYSHEET			109
+#define IDM_OPEN                110
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1

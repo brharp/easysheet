@@ -17,6 +17,12 @@ void SheetView::render(Display &display)
 	display.startSheet();
 	rowCount = dataSource.getRowCount();
 	columnCount = dataSource.getColumnCount();
+	display.startRow();
+	display.rowHeader("");
+	for (columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+		display.columnHeader(dataSource.getColumnLabel(columnIndex));
+	}
+	display.endRow();
 	for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
 		display.startRow();
 		display.rowHeader(dataSource.getRowLabel(rowIndex));
